@@ -23,10 +23,15 @@ void AAvatar::BeginPlay()
 }
 
 // Called every frame
-void AAvatar::Tick(float DeltaTime)
+void AAvatar::Tick(float DeltaSeconds)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSeconds);
 
+	// apply knockback vector 
+	AddMovementInput(-1*knockback, 1.f);
+
+	// half the size of the knockback each frame 
+	knockback *= 0.5f;
 }
 
 // Called to bind functionality to input
@@ -157,4 +162,13 @@ void AAvatar::MouseClicked()
 	APlayerController* PController = GetWorld()->GetFirstPlayerController();
 	AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
 	hud->MouseClicked();
+}
+
+float AAvatar::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	// add some knockback that gets applied over a few frames 
+	knockback = GetActorLocation() - DamageCauser->GetActorLocation();
+	knockback.Normalize();
+	knockback *= DamageAmount * 500; // knockback proportional to damage 
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
