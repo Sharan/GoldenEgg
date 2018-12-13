@@ -98,4 +98,7 @@ public:
 		float BulletLaunchImpulse;
 
 	void Attack(AActor* thing);
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+		class UBehaviorTree* BehaviorTree;
 };

@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Bullet.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "MonsterAIController.h"
 
 // Sets default values
 AMonster::AMonster(const FObjectInitializer& ObjectInitializer)
@@ -27,6 +28,7 @@ AMonster::AMonster(const FObjectInitializer& ObjectInitializer)
 	AttackRangeSphere->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 }
 
+// Called every frame
 void AMonster::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -39,26 +41,38 @@ void AMonster::Tick(float DeltaSeconds)
 	FVector playerPos = avatar->GetActorLocation();
 	FVector toPlayer = playerPos - GetActorLocation();
 	float distanceToPlayer = toPlayer.Size();
+	AMonsterAIController* controller = Cast<AMonsterAIController>(GetController());
 
 	// If the player is not the SightSphere of the monster, 
 	// go back 
 	if (distanceToPlayer > SightSphere->GetScaledSphereRadius())
 	{
 		// If the player is OS, then the enemy cannot chase 
+		if (controller != nullptr)
+		{
+			controller->SetAttackRange(false);
+			controller->SetFollowRange(false);
+		}
 		return;
 	}
 
 	toPlayer /= distanceToPlayer;  // normalizes the vector 
 
-	// At least face the target 
-	// Gets you the rotator to turn something 
-	// that looks in the `toPlayer` direction 
+								   // At least face the target 
+								   // Gets you the rotator to turn something 
+								   // that looks in the `toPlayer` direction 
 	FRotator toPlayerRotation = toPlayer.Rotation();
 	toPlayerRotation.Pitch = 0; // 0 off the pitch 
 	RootComponent->SetWorldRotation(toPlayerRotation);
 
+
 	if (isInAttackRange(distanceToPlayer))
 	{
+		if (controller != nullptr)
+		{
+			controller->SetAttackRange(true);
+		}
+
 		// Perform the attack 
 		if (!TimeSinceLastStrike)
 		{
@@ -76,9 +90,16 @@ void AMonster::Tick(float DeltaSeconds)
 	else
 	{
 		// not in attack range, so walk towards player 
-		AddMovementInput(toPlayer, Speed*DeltaSeconds);
+		//AddMovementInput(toPlayer, Speed*DeltaSeconds);
+
+		if (controller != nullptr)
+		{
+			controller->SetAttackRange(false);
+			controller->SetFollowRange(true);
+		}
 	}
 }
+
 void AMonster::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
