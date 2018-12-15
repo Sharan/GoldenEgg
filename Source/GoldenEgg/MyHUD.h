@@ -22,6 +22,8 @@ struct Icon
 struct Widget
 {
 	Icon icon;
+	// bpSpell is the blueprint of the spell this widget casts 
+	UClass *bpSpell;
 	FVector2D pos, size;
 	Widget(Icon iicon)
 	{
@@ -99,4 +101,5 @@ public:
 	void MouseMoved();
 	void clearWidgets();
 	void addWidget(Widget widget);
+	void MouseRightClicked();
 };

@@ -3,6 +3,7 @@
 #include "Avatar.h"
 #include "PickupItem.h"
 #include "MyHUD.h"
+#include "Spell.h"
 
 // Sets default values
 AAvatar::AAvatar()
@@ -44,6 +45,8 @@ void AAvatar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		&AAvatar::ToggleInventory);
 	PlayerInputComponent->BindAction("MouseClickedLMB", IE_Pressed, this,
 		&AAvatar::MouseClicked);
+	PlayerInputComponent->BindAction("MouseClickedRMB", IE_Pressed, this,
+		&AAvatar::MouseRightClicked);
 	PlayerInputComponent->BindAxis("Forward", this,
 		&AAvatar::MoveForward);
 	PlayerInputComponent->BindAxis("Strafe", this, &AAvatar::MoveRight);
@@ -122,6 +125,8 @@ void AAvatar::Pickup(APickupItem *item)
 		Backpack.Add(item->Name, item->Quantity);
 		// record ref to the tex the first time it is picked up 
 		Icons.Add(item->Name, item->Icon);
+		// the spell associated with the item 
+		Spells.Add(item->Name, item->Spell);
 	}
 }
 
@@ -152,7 +157,9 @@ void AAvatar::ToggleInventory()
 		if (Icons.Find(it->Key))
 		{
 			tex = Icons[it->Key];
-			hud->addWidget(Widget(Icon(fs, tex)));
+			Widget w(Icon(fs, tex));
+			w.bpSpell = Spells[it->Key];
+			hud->addWidget(w);
 		}
 	}
 }
@@ -171,4 +178,31 @@ float AAvatar::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageE
 	knockback.Normalize();
 	knockback *= DamageAmount * 500; // knockback proportional to damage 
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AAvatar::CastSpell(UClass* bpSpell)
+{
+	// instantiate the spell and attach to character 
+	ASpell *spell = GetWorld()->SpawnActor<ASpell>(bpSpell,
+		FVector(0), FRotator(0));
+
+	if (spell)
+	{
+		spell->SetCaster(this);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Yellow,
+			FString("can't cast ") + bpSpell->GetName());
+	}
+}
+
+void AAvatar::MouseRightClicked()
+{
+	if (inventoryShowing)
+	{
+		APlayerController* PController = GetWorld()->GetFirstPlayerController();
+		AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
+		hud->MouseRightClicked();
+	}
 }
