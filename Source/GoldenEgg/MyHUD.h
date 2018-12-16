@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Engine/Canvas.h"
 #include "GameFramework/HUD.h"
+#include "InventoryWidget.h"
+#include "Sound/SoundCue.h"
 #include "MyHUD.generated.h"
 
 struct Icon
@@ -24,22 +26,9 @@ struct Widget
 	Icon icon;
 	// bpSpell is the blueprint of the spell this widget casts 
 	UClass *bpSpell;
-	FVector2D pos, size;
 	Widget(Icon iicon)
 	{
 		icon = iicon;
-	}
-	float left() { return pos.X; }
-	float right() { return pos.X + size.X; }
-	float top() { return pos.Y; }
-	float bottom() { return pos.Y + size.Y; }
-	bool hit(FVector2D p)
-	{
-		// +---+ top (0) 
-		// |   | 
-		// +---+ bottom (2) (bottom > top) 
-		// L   R 
-		return p.X > left() && p.X < right() && p.Y > top() && p.Y < bottom();
 	}
 };
 
@@ -97,9 +86,19 @@ public:
 
 	Widget* heldWidget;  // hold the last touched Widget in memory 
 
-	void MouseClicked();
-	void MouseMoved();
+	void MouseClicked(int idx);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+		TSubclassOf<class UUserWidget> wInventory;
+
+	UInventoryWidget* Inventory;
+
+	void OpenInventory();
+	void CloseInventory();
+
 	void clearWidgets();
 	void addWidget(Widget widget);
-	void MouseRightClicked();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+		USoundCue* audioCue;
 };

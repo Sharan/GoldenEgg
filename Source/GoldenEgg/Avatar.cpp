@@ -86,8 +86,6 @@ void AAvatar::Yaw(float amount)
 		// When the inventory is showing, 
 		// pass the input to the HUD 
 		APlayerController* PController = GetWorld()->GetFirstPlayerController();
-		AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
-		hud->MouseMoved();
 		return;
 	}
 	else
@@ -102,8 +100,6 @@ void AAvatar::Pitch(float amount)
 		// When the inventory is showing, 
 		// pass the input to the HUD 
 		APlayerController* PController = GetWorld()->GetFirstPlayerController();
-		AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
-		hud->MouseMoved();
 		return;
 	}
 	else
@@ -139,7 +135,7 @@ void AAvatar::ToggleInventory()
 	// If inventory is displayed, undisplay it. 
 	if (inventoryShowing)
 	{
-		hud->clearWidgets();
+		hud->CloseInventory();
 		inventoryShowing = false;
 		PController->bShowMouseCursor = false;
 		return;
@@ -148,6 +144,7 @@ void AAvatar::ToggleInventory()
 	// Otherwise, display the player's inventory 
 	inventoryShowing = true;
 	PController->bShowMouseCursor = true;
+	hud->OpenInventory();
 	for (TMap<FString, int>::TIterator it =
 		Backpack.CreateIterator(); it; ++it)
 	{
@@ -162,13 +159,12 @@ void AAvatar::ToggleInventory()
 			hud->addWidget(w);
 		}
 	}
+	hud->DrawWidgets();
 }
 
 void AAvatar::MouseClicked()
 {
 	APlayerController* PController = GetWorld()->GetFirstPlayerController();
-	AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
-	hud->MouseClicked();
 }
 
 float AAvatar::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
@@ -202,7 +198,5 @@ void AAvatar::MouseRightClicked()
 	if (inventoryShowing)
 	{
 		APlayerController* PController = GetWorld()->GetFirstPlayerController();
-		AMyHUD* hud = Cast<AMyHUD>(PController->GetHUD());
-		hud->MouseRightClicked();
 	}
 }
